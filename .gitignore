@@ -41,3 +41,4 @@ Thumbs.db
 # Secrets
 credentials.json
 *.pem
+dashboard/
