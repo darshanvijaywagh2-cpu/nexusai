@@ -19,7 +19,7 @@ from dataclasses import dataclass
 
 # Import NexusAI SDK
 import sys
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'sdk', 'python'))
+sys.path.insert(0, '/root/tender-system/nexusai/sdk/python')
 from nexusai import NexusAI, Priority
 
 # ============== CONFIG ==============

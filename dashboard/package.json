@@ -16,7 +16,7 @@
     "recharts": "^2.10.4",
     "clsx": "^2.1.0",
     "tailwind-merge": "^0",
-    "2.2.class-variance-authority": "^0.7.0"
+    "class-variance-authority": "^0.7.0"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.17",
