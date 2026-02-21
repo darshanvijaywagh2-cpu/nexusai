@@ -4176,6 +4176,81 @@ async def bridge_result(data: dict):
     PENDING_COMMANDS = [c for c in PENDING_COMMANDS if c.get("id") != cmd_id]
     return {"status": "success"}
 
+# ============== HYBRID ROUTER ==============
+
+from server.desktop_manager import manager as desktop_manager
+from server.headless_browser import headless
+
+@app.get("/router/status")
+async def router_status():
+    """Get overall system status"""
+    return {
+        "status": "success",
+        "desktops": desktop_manager.get_status(),
+        "headless_available": True
+    }
+
+@app.post("/router/command")
+async def route_command(command: str, target: str = "auto"):
+    """Route command to desktop or headless"""
+    desktop_id = "desktop-1"
+    
+    if target == "auto":
+        # Check desktop status
+        result = desktop_manager.route_command(command, desktop_id)
+        
+        if result["route"] == "desktop":
+            # Send to desktop
+            return {
+                "status": "success",
+                "route": "desktop",
+                "message": f"Command '{command}' sent to online desktop"
+            }
+        else:
+            # Use headless
+            return {
+                "status": "success",
+                "route": "headless",
+                "message": f"Desktop offline - running headless: {command}"
+            }
+    elif target == "headless":
+        return {
+            "status": "success",
+            "route": "headless",
+            "message": "Using VPS headless mode"
+        }
+    else:
+        return {
+            "status": "success",
+            "route": "desktop",
+            "message": f"Sending to desktop: {target}"
+        }
+
+@app.post("/router/headless/open")
+async def headless_open(site: str):
+    """Open site in headless browser"""
+    try:
+        if "instagram" in site.lower():
+            result = headless.open_instagram()
+        elif "whatsapp" in site.lower():
+            result = headless.open_whatsapp()
+        elif "twitter" in site.lower() or "x.com" in site.lower():
+            result = headless.open_twitter()
+        else:
+            result = headless.search_google(site)
+        
+        return result
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.get("/router/headless/screenshot")
+async def headless_screenshot():
+    """Take headless screenshot"""
+    try:
+        return headless.take_screenshot()
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
 # ============== MAIN ==============
 if __name__ == "__main__":
     import uvicorn
