@@ -4262,6 +4262,143 @@ async def headless_screenshot():
     except Exception as e:
         return {"status": "error", "message": str(e)}
 
+# ============== OPENAI CODEX ==============
+
+@app.get("/codex/models")
+async def codex_models():
+    """List available Codex models"""
+    return {
+        "status": "success",
+        "models": [
+            {"id": "gpt-4o", "name": "GPT-4o", "type": "multimodal"},
+            {"id": "gpt-4o-mini", "name": "GPT-4o Mini", "type": "fast"},
+            {"id": "o1", "name": "OpenAI o1", "type": "reasoning"},
+            {"id": "o1-mini", "name": "OpenAI o1-mini", "type": "fast_reasoning"}
+        ]
+    }
+
+@app.post("/codex/chat")
+async def codex_chat(prompt: str, model: str = "gpt-4o"):
+    """Chat with OpenAI Codex (requires OAuth or API key)"""
+    api_key = os.environ.get('OPENAI_API_KEY')
+    
+    if not api_key:
+        return {
+            "status": "info",
+            "message": "OpenAI API key required",
+            "get_key": "https://platform.openai.com/api-keys",
+            "oauth": "Use OpenAI Codex with OAuth: https://codex.dev"
+        }
+    
+    try:
+        import requests
+        
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={"model": model, "messages": [{"role": "user", "content": prompt}]},
+            timeout=60
+        )
+        
+        result = response.json()
+        return {
+            "status": "success",
+            "response": result["choices"][0]["message"]["content"],
+            "model": model
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+@app.post("/codex/code")
+async def codex_code(prompt: str, language: str = "python"):
+    """Generate code using Codex"""
+    code_prompt = f"Write {language} code for: {prompt}. Only output the code, no explanation."
+    
+    api_key = os.environ.get('OPENAI_API_KEY')
+    
+    if not api_key:
+        return {
+            "status": "info",
+            "message": "API key needed",
+            "get_key": "https://platform.openai.com/api-keys"
+        }
+    
+    try:
+        import requests
+        
+        response = requests.post(
+            "https://api.openai.com/v1/chat/completions",
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
+                "model": "gpt-4o",
+                "messages": [{"role": "user", "content": code_prompt}]
+            },
+            timeout=60
+        )
+        
+        result = response.json()
+        return {
+            "status": "success",
+            "code": result["choices"][0]["message"]["content"],
+            "language": language,
+            "model": "GPT-4o (Codex)"
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+# ============== OAUTH SETUP ==============
+
+@app.get("/auth/oauth/openai")
+async def openai_oauth():
+    """Get OpenAI OAuth URL"""
+    return {
+        "status": "info",
+        "message": "OpenAI OAuth Setup",
+        "steps": [
+            "1. Go to: https://platform.openai.com/settings",
+            "2. Go to Organization → Settings",
+            "3. Create API Key",
+            "4. Add to .env file"
+        ],
+        "oauth_url": "https://platform.openai.com/settings",
+        "note": "For Codex OAuth: https://codex.dev"
+    }
+
+@app.get("/auth/oauth/connect")
+async def oauth_connect(provider: str = "openai"):
+    """Start OAuth connection"""
+    if provider == "openai":
+        return {
+            "status": "redirect",
+            "url": "https://platform.openai.com/login",
+            "message": "Login to OpenAI and create API key"
+        }
+    elif provider == "anthropic":
+        return {
+            "status": "redirect", 
+            "url": "https://console.anthropic.com/settings/keys",
+            "message": "Login to Anthropic and create API key"
+        }
+    return {"status": "error", "message": "Unknown provider"}
+
+@app.get("/auth/status")
+async def auth_status():
+    """Check API key status"""
+    import os
+    
+    keys = {
+        "openai": bool(os.environ.get('OPENAI_API_KEY')),
+        "anthropic": bool(os.environ.get('ANTHROPIC_API_KEY')),
+        "gemini": bool(os.environ.get('GEMINI_API_KEY')),
+        "groq": bool(os.environ.get('GROQ_API_KEY'))
+    }
+    
+    return {
+        "status": "success",
+        "keys_configured": keys,
+        "note": "Set keys in .env file"
+    }
+
 # ============== MAIN ==============
 if __name__ == "__main__":
     import uvicorn
