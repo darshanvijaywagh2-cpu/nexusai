@@ -4178,16 +4178,27 @@ async def bridge_result(data: dict):
 
 # ============== HYBRID ROUTER ==============
 
-from server.desktop_manager import manager as desktop_manager
-from server.headless_browser import headless
+try:
+    from desktop_manager import manager as desktop_manager
+    from headless_browser import headless
+except:
+    desktop_manager = None
+    headless = None
 
 @app.get("/router/status")
 async def router_status():
     """Get overall system status"""
+    if desktop_manager:
+        return {
+            "status": "success",
+            "desktops": desktop_manager.get_status(),
+            "headless_available": headless is not None
+        }
     return {
         "status": "success",
-        "desktops": desktop_manager.get_status(),
-        "headless_available": True
+        "desktops": {},
+        "headless_available": False,
+        "note": "Desktop manager not loaded"
     }
 
 @app.post("/router/command")
