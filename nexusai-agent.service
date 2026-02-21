@@ -1,0 +1,16 @@
+[Unit]
+Description=NexusAI Desktop Bridge Agent
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/nexusai
+ExecStart=/usr/bin/python3 /root/nexusai/bridge_agent.py
+Restart=always
+RestartSec=5
+Environment=VPS_URL=
+Environment=DESKTOP_ID=desktop-1
+
+[Install]
+WantedBy=multi-user.target
