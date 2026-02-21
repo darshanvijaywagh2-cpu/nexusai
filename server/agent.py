@@ -25,7 +25,7 @@ logging.getLogger().addHandler(console)
 class DesktopAgent:
     def __init__(self):
         # Configuration
-        self.vps_url = os.environ.get('VPS_URL', 'http://localhost:8000')
+        self.vps_url = os.environ.get('VPS_URL', 'https://superintendent-info-smooth-gordon.trycloudflare.com')
         self.desktop_id = os.environ.get('DESKTOP_ID', 'desktop-1')
         self.check_interval = 5  # seconds
         self.running = True
